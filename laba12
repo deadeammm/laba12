@@ -1,0 +1,405 @@
+from tkinter import *
+
+
+# --- Функции управления светофорами ---
+def blink_green(sign, duration, interval, time_left=3, callback=None):
+    """
+    Функция мигания зеленого сигнала светофора с обратным отсчетом.
+    """
+    def turn_on():
+        canvas.itemconfig(sign, fill="#00ff00", outline="#000000", width=2)
+        canvas.itemconfig(timer_G_text, text=f"{time_left}", angle=90)  # Зеленый сигнал светофора горит 3 сек
+        canvas.itemconfig(timer_G_two_text, text=f"{time_left}", angle=-90)  # Зеленый сигнал светофора горит 3 сек
+        canvas.itemconfig(timer_Wait_text, text="Ждите!", angle=180)
+        canvas.itemconfig(timer_Wait_two_text, text="Ждите!")
+        if time_left > 0:
+            root.after(interval, lambda: blink_green(sign, duration, interval, time_left - 1, callback))
+        else:
+            canvas.itemconfig(timer_G_text, text="")
+            canvas.itemconfig(timer_G_two_text, text="")
+            if callback:
+                callback()
+
+    def turn_off():
+        canvas.itemconfig(sign, fill="#404040", outline="#000000", width=2)
+        canvas.itemconfig(timer_G_text, text="")
+        canvas.itemconfig(timer_G_two_text, text="")
+        root.after(interval, turn_on)
+
+    turn_off()
+
+
+# Моргает зелёный сигнал светофора для пешеходов - 3 сек
+def blinking_green_sign(time_left, time_text):
+    def turn_off_sign():
+        canvas.itemconfig(sign_W_G, fill='#404040', outline='#000000', width=2)
+        canvas.itemconfig(time_text, text=f"")
+        canvas.itemconfig(sign_W_G_two, fill='#404040', outline='#000000', width=2)
+
+    def turn_on_sign():
+        canvas.itemconfig(time_text, text=f"{time_left}", angle=180)
+        canvas.itemconfig(sign_W_G, fill='#00ff00', outline='#000000', width=2)
+        canvas.itemconfig(sign_W_G_two, fill='#00ff00', outline='#000000', width=2)
+    root.after(0, turn_off_sign)
+    root.after(500, turn_on_sign)
+
+
+# --- Функции переключения сигналов ---
+def step_1(time_left=30):
+    """
+    Переключение на желтый сигнал.
+    """
+    canvas.itemconfig(sign_C_G, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_G_two, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_Y, fill="#ffff00", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_Y_two, fill="#ffff00", outline="#000000", width=2)
+    canvas.itemconfig(timer_Y_text, text=f"{time_left}", angle=90)  # Время горения жёлтого
+    canvas.itemconfig(timer_RC_text, text=f"{time_left + 30}", angle=180)  # Таймер для пешеходов
+
+    canvas.itemconfig(timer_Y_two_text, text=f"{time_left}", angle=-90)  # Время горения жёлтого
+    canvas.itemconfig(timer_RC_two_text, text=f"{time_left + 30}")  # Таймер для пешеходов
+
+    if time_left > 0:
+        root.after(1000, lambda: step_1(time_left - 1))
+    else:
+        canvas.itemconfig(timer_Y_text, text="")
+        canvas.itemconfig(timer_Y_two_text, text="")
+        root.after(0, step_2)
+
+
+def step_2(time_left=30):
+    """
+    Переключение на красный сигнал.
+    """
+    canvas.itemconfig(sign_C_Y, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_R, fill="#ff0000", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_Y_two, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_R_two, fill="#ff0000", outline="#000000", width=2)
+    canvas.itemconfig(timer_RC_text, text=f"{time_left}", angle=180)  # Таймер для пешеходов
+    canvas.itemconfig(timer_RC_two_text, text=f"{time_left}")  # Таймер для пешеходов
+    if time_left > 0:
+        canvas.itemconfig(timer_R_text, text=f"{time_left + 150}", angle=90)  # Автомобильный светофор время
+        canvas.itemconfig(timer_R_two_text, text=f"{time_left + 150}", angle=-90)  # Автомобильный светофор время
+        root.after(1000, lambda: step_2(time_left - 1))
+    else:
+        canvas.itemconfig(timer_RC_text, text="")
+        canvas.itemconfig(timer_RC_two_text, text="")
+        root.after(0, step_3)
+
+
+def step_3(time_left=120):
+    """
+    Переключение на зеленый сигнал для пешеходов.
+    """
+    canvas.itemconfig(sign_W_R, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_W_G, fill="#00ff00", outline="#000000", width=2)
+    canvas.itemconfig(sign_W_R_two, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_W_G_two, fill="#00ff00", outline="#000000", width=2)
+    canvas.itemconfig(timer_Wait_text, text="")
+    canvas.itemconfig(timer_Go_text, text="Идите!", angle=180)
+    canvas.itemconfig(timer_Wait_two_text, text="")
+    canvas.itemconfig(timer_Go_two_text, text="Идите!")
+    canvas.itemconfig(timer_R_text, text=f"{time_left + 30}", angle=90)  # Таймер для машин
+    canvas.itemconfig(timer_R_two_text, text=f"{time_left + 30}", angle=-90)  # Таймер для машин
+    canvas.itemconfig(timer_GC_text, text=f"{time_left}", angle=180)
+    canvas.itemconfig(timer_GC_two_text, text=f"{time_left}")
+    if time_left > 0:
+
+        root.after(1000, lambda: step_3(time_left - 1))
+        if 3 >= time_left > 0:
+            blinking_green_sign(time_left, timer_GC_text)
+            blinking_green_sign(time_left, timer_GC_two_text)
+    else:
+        canvas.itemconfig(timer_GC_text, text="")
+        canvas.itemconfig(timer_GC_two_text, text="")
+        root.after(0, step_4)
+
+
+def step_4(time_left=30, time_btn=120):
+    """
+    Переключение на красный сигнал для пешеходов.
+    """
+    canvas.itemconfig(sign_W_R, fill="#ff0000", outline="#000000", width=2)
+    canvas.itemconfig(sign_W_G, fill="#404040", outline="#000000", width=2)
+
+    canvas.itemconfig(sign_W_R_two, fill="#ff0000", outline="#000000", width=2)
+    canvas.itemconfig(sign_W_G_two, fill="#404040", outline="#000000", width=2)
+
+    canvas.itemconfig(timer_R_text, text=f"{time_left}", angle=90)
+    canvas.itemconfig(timer_R_two_text, text=f"{time_left}", angle=-90)
+
+    canvas.itemconfig(timer_Go_text, text="")
+    canvas.itemconfig(timer_Go_two_text, text="")
+    if time_left > 0:
+        root.after(1000, lambda: step_4(time_left - 1))
+    else:
+        canvas.itemconfig(timer_R_text, text="")
+        canvas.itemconfig(timer_R_two_text, text="")
+        canvas.itemconfig(timer_btn_text, text=f"{time_left}", angle=180)
+        canvas.itemconfig(timer_btn_two_text, text=f"{time_left}")
+        if time_btn > 0:
+            root.after(0, lambda: btn_timer(time_btn - 1))
+        else:
+            canvas.itemconfig(timer_btn_text, text=f"")
+            canvas.itemconfig(timer_btn_two_text, text=f"")
+            btn['state'] = 'normal'
+            btn_two['state'] = 'normal'
+
+        root.after(0, start_position)
+
+
+def start_position():
+    """
+    Возврат в исходное состояние (зеленый для машин).
+    """
+    canvas.itemconfig(sign_C_G, fill="#00ff00", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_Y, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_R, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(timer_R_text, text="")
+    canvas.itemconfig(timer_RC_text, text="")
+    canvas.itemconfig(timer_Y_text, text="")
+    canvas.itemconfig(timer_G_text, text="")
+    canvas.itemconfig(timer_GC_text, text="")
+
+    canvas.itemconfig(sign_C_G_two, fill="#00ff00", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_Y_two, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(sign_C_R_two, fill="#404040", outline="#000000", width=2)
+    canvas.itemconfig(timer_R_two_text, text="")
+    canvas.itemconfig(timer_RC_two_text, text="")
+    canvas.itemconfig(timer_Y_two_text, text="")
+    canvas.itemconfig(timer_G_two_text, text="")
+    canvas.itemconfig(timer_GC_two_text, text="")
+
+
+# --- Функция запуска таймера ---
+def change_color():
+    """
+    Запускает цикл переключения светофора.
+    """
+    btn['state'] = 'disabled'  # Блокируем кнопку
+    btn_two['state'] = 'disabled'
+    blink_green(sign_C_G, 3000, 500, time_left=3, callback=step_1)  # Мигание зеленого 3 секунды
+    blink_green(sign_C_G_two, 3000, 500, time_left=3, callback=step_1)  # Мигание зеленого 3 секунды
+
+
+# --- Таймер для разблокировки кнопки ---
+def btn_timer(time_left=120):
+    """
+    Обратный отсчет до разблокировки кнопки, запускается при зеленом сигнале для машин.
+    """
+    canvas.itemconfig(timer_btn_text, text=f"{time_left}")
+    canvas.itemconfig(timer_btn_two_text, text=f"{time_left}")
+    if time_left > 0:
+        root.after(1000, lambda: btn_timer(time_left - 1))
+    else:
+        canvas.itemconfig(timer_btn_text, text=f"")
+        canvas.itemconfig(timer_btn_two_text, text=f"")
+        btn['state'] = 'normal'
+        btn_two['state'] = 'normal'
+        start_position()
+
+
+# --- Создаем главное окно ---
+root = Tk()
+root.title("Светофор, управляемый кнопкой")
+
+# --- Определение размеров окна ---
+window_width = 800
+window_height = 530
+
+# --- Получение размеров экрана ---
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+
+# --- Расположение окна по центру экрана ---
+x = (screen_width - window_width) // 2
+y = (screen_height - window_height) // 2
+root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+# --- Определение координат светофоров ---
+c_center = 150
+w_center = 150
+
+canvas = Canvas(root, width=800, height=600, bg="#fff")
+root.resizable(width=False, height=False)
+canvas.pack()
+
+
+# Изображения автомобилей, людей и дороги
+texture_road = PhotoImage(file="road.png")
+
+texture_car_one = PhotoImage(file="auto-1.png")
+texture_car_img_one = texture_car_one.subsample(4, 4)
+texture_car_two = PhotoImage(file="auto-2.png")
+texture_car_img_two = texture_car_two.subsample(4, 4)
+texture_car_three = PhotoImage(file="auto_3.png")
+texture_car_img_three = texture_car_three.subsample(4, 4)
+
+texture_people_one = PhotoImage(file="people-one.png")
+texture_people_img_one = texture_people_one.subsample(6, 6)
+texture_people_two = PhotoImage(file="people-two.png")
+texture_people_img_two = texture_people_two.subsample(6, 6)
+texture_people_three = PhotoImage(file="people-three.png")
+texture_people_img_three = texture_people_three.subsample(6, 6)
+# --- Загрузка изображения ---
+photo = PhotoImage(file="hand.png")  # Используем относительный путь
+photo_two = PhotoImage(file="hand1.png")
+photo_image = photo.subsample(23, 23)
+photo_image_two = photo_two.subsample(23, 23)
+
+# --- Кнопка запуска ---
+btn = Button(root, background="#dfdfdf", command=change_color, foreground="#000000", image=photo_image)
+canvas.create_window(450, 474, window=btn)
+btn_two = Button(root, background="#dfdfdf", command=change_color, foreground="#000000", image=photo_image_two)
+canvas.create_window(352, 53, window=btn_two)
+
+canvas.create_image(window_width // 2, window_height // 2, image=texture_road)  # Рисуем картинку
+
+car1 = canvas.create_image(50, 300, image=texture_car_img_one)  # Отображаем 1 автомобиль
+car2 = canvas.create_image(750, 230, image=texture_car_img_two)  # Отображаем 2 автомобиль
+car3 = canvas.create_image(50, 360, image=texture_car_img_three)  # Отображаем 3 автомобиль
+
+people1 = canvas.create_image(400, 40, image=texture_people_img_one)  # Отображаем 1 человека
+people2 = canvas.create_image(400, 470, image=texture_people_img_two)  # Отображаем 2 человека
+people3 = canvas.create_image(390, 450, image=texture_people_img_three)  # Отображаем 3 человека
+# --- Рисуем светофоры ---
+# Машинный светофор №1
+canvas.create_rectangle(110, 505, 325, 432, fill="#000000", outline="")  # Черный фон для всех сигналов
+
+sign_C_R = canvas.create_oval(255, 438, 315, 497, fill="#404040", outline="#000000", width=2)
+sign_C_Y = canvas.create_oval(188, 438, 248, 497, fill="#404040", outline="#000000", width=2)
+sign_C_G = canvas.create_oval(120, 438, 180, 497, fill="#00ff00", outline="#000000", width=2)
+
+# Машинный светофор №2
+canvas.create_rectangle(475, 25, 684, 99, fill="#000000", outline="")  # Черный фон для всех сигналов
+
+sign_C_R_two = canvas.create_oval(482, 32, 542, 92, fill="#404040", outline="#000000", width=2)
+sign_C_Y_two = canvas.create_oval(549, 32, 609, 92, fill="#404040", outline="#000000", width=2)
+sign_C_G_two = canvas.create_oval(616, 32, 676, 92, fill="#00ff00", outline="#000000", width=2)
+
+# Пешеходный светофор
+canvas.create_rectangle(266, 110, 324, 130, fill="#404040", outline="#000000", width=2)
+canvas.create_rectangle(478, 415, 538, 505, fill="#000000", outline="")  # Черный фон для красного
+sign_W_R = canvas.create_oval(488, 418, 528, 457, fill="#ff0000", outline="#000000", width=2)
+sign_W_G = canvas.create_oval(488, 460, 528, 500, fill="#404040", outline="#000000", width=2)
+
+# Пешеходный светофор №2
+canvas.create_rectangle(479, 398, 537, 415, fill="#404040", outline="#000000", width=2)
+canvas.create_rectangle(265, 25, 325, 114, fill="#000000", outline="")  # Черный фон для красного
+sign_W_R_two = canvas.create_oval(275, 69, 315, 109, fill="#ff0000", outline="#000000", width=2)
+sign_W_G_two = canvas.create_oval(275, 27, 315, 67, fill="#404040", outline="#000000", width=2)
+
+# Окно для таймера №1
+canvas.create_rectangle(435, 430, 465, 449, fill="#404040", outline="#000000", width=2)
+# Окно для таймера №2
+canvas.create_rectangle(338, 97, 368, 79, fill="#404040", outline="#000000", width=2)
+# --- Таймеры ---
+
+timer_R_text = canvas.create_text(512, 62, text="", fill="black", font=("Arial", 16))
+timer_Y_text = canvas.create_text(579, 62, text="", fill="black", font=("Arial", 16))
+timer_G_text = canvas.create_text(647, 62, text="", fill="black", font=("Arial", 16))
+
+# Для второго светофора
+timer_R_two_text = canvas.create_text(285, 467, text="", fill="black", font=("Arial", 16))
+timer_Y_two_text = canvas.create_text(218, 467, text="", fill="black", font=("Arial", 16))
+timer_G_two_text = canvas.create_text(151, 467, text="", fill="black", font=("Arial", 16))
+
+timer_Wait_text = canvas.create_text(295, 122, text="", fill="red", font=("Arial", 12))
+timer_Go_text = canvas.create_text(295, 122, text="", fill="#00ff00", font=("Arial", 12))
+
+timer_RC_text = canvas.create_text(295, 90, text="", fill="black", font=("Arial", 16))
+timer_GC_text = canvas.create_text(295, 48, text="", fill="black", font=("Arial", 16))
+
+timer_btn_text = canvas.create_text(353, 87, text="",
+                                    font=("Arial", 12), fill="red")  # Таймер для кнопки
+timer_btn_two_text = canvas.create_text(449, 439, text="",
+                                    font=("Arial", 12), fill="red")  # Таймер для кнопки
+
+# Для второго светофора
+timer_Wait_two_text = canvas.create_text(508, 405, text="", fill="red", font=("Arial", 12))
+timer_Go_two_text = canvas.create_text(508, 405, text="", fill="#00ff00", font=("Arial", 12))
+
+timer_RC_two_text = canvas.create_text(508, 439, text="", fill="black", font=("Arial", 16))
+timer_GC_two_text = canvas.create_text(508, 482, text="", fill="black", font=("Arial", 16))
+
+# Анимации для машин и людей
+cars = [[50, 300], [750, 230], [50, 360]]
+peoples = [[400, 40], [400, 470], [390, 450]]
+
+
+def move_cars():
+    """
+    Движение машин по дороге.
+    """
+    global cars
+    car_speed_1 = 5
+    car_speed_2 = 4
+    for i, car in enumerate(cars):
+        if car[0] > window_width:
+            car[0] = -100
+        elif i == 1 and car[0] < -100:
+            car[0] = 800
+        if ((canvas.itemcget(sign_C_R, "fill") == "#ff0000"
+            or canvas.itemcget(sign_C_Y, "fill") == "#ffff00")
+            and ((i == 0 or i == 2) and (car[0] > 45
+            and car[0] < 51) or (i == 1) and (car[0] > 745
+            and car[0] < 751))):
+            car[0] = car[0]
+        else:
+            if i == 1:
+                car[0] -= car_speed_1
+            else:
+                if i == 0:
+                    car[0] += car_speed_1
+                if i == 2:
+                    car[0] += car_speed_2
+        if i == 0:
+            canvas.coords(car1, car[0], car[1])
+        if i == 1:
+            canvas.coords(car2, car[0], car[1])
+        if i == 2:
+            canvas.coords(car3, car[0], car[1])
+
+    root.after(16, move_cars)
+
+
+root.after(1000, move_cars)
+
+
+def move_people():
+    """
+    Движение машин по дороге.
+    """
+    global peoples
+    people_speed = 3
+    for i, people in enumerate(peoples):
+        if people[1] > window_height:
+            people[1] = -100
+        elif i == 2 and people[1] < -100:
+            people[1] = 530
+        if (
+            canvas.itemcget(sign_W_R, "fill") == "#ff0000"
+            and ((i == 0 or i == 1) and (people[1] > 45
+            and people[1] < 51) or (i == 2) and (people[1] > 50
+            and people[1] < 500))
+        ):
+            people_speed = 0
+        else:
+            if i == 2:
+                people[1] -= people_speed
+            else:
+                people[1] += people_speed
+        if i == 0:
+            canvas.coords(people1, people[0], people[1])
+        if i == 1:
+            canvas.coords(people2, people[0], people[1])
+        if i == 2:
+            canvas.coords(people3, people[0], people[1])
+
+    root.after(30, move_people)
+
+
+root.after(1000, move_people)
+
+# --- Запуск программы ---
+root.mainloop()
